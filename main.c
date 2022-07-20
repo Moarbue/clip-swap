@@ -4,7 +4,12 @@
 #include <errno.h>
 #include <string.h>
 
+#include <unistd.h>
+
+#include "libclipboard.h"
+
 #define MAX_WORD_LENGTH 100
+#define CLIPBOARD_MAX_LENGTH (1024 * 2)
 
 void extract_pairs(const char *file_path, const char sep1, const char sep2, char *(**_pairs)[2], size_t *_pair_count)
 {
@@ -72,11 +77,74 @@ int main(int argc, char **argv)
     char *(*pairs)[2];
     size_t pair_count;
 
+    // extract the pairs out of the file hello
     extract_pairs("./hello", ' ', '\n', &pairs, &pair_count);
 
-    for (size_t i = 0; i < pair_count; ++i) {
-        printf("%s     \t%s\n", pairs[i][0], pairs[i][1]);
+    // clipboard object
+    clipboard_c *cb = clipboard_new(NULL);
+    if (cb == NULL) {
+        fprintf(stderr, "ERROR: Failed to create the clipboard object");
+        exit(1);
     }
+
+    char last_cb_content[CLIPBOARD_MAX_LENGTH];
+
+    while(1) {
+        sleep(1);
+
+        int len = 0;
+        // get the clipboard content
+        char *cb_content = clipboard_text_ex(cb, &len, LCB_CLIPBOARD);
+
+        // only search for matches if content changed since last iteration
+        if (cb_content == NULL || strcmp(last_cb_content, cb_content) == 0) continue;
+
+        size_t i;
+        bool reverse = false;
+
+        // look for matches in the first word of pairs
+        for (i = 0; i < pair_count; i++)
+            if (strstr(pairs[i][0], cb_content) != NULL) break;
+        
+        // didn't find any matching words in first word of pairs
+        if (i == pair_count)
+        {
+            reverse = true;
+            // check if second word of pairs is matching clipboard content
+            for (i = 0; i < pair_count; i++)
+                if (strstr(pairs[i][1], cb_content) != NULL) break;
+        }
+
+        // didn't find any matching word in second word of pairs either
+        if (i == pair_count)
+        {
+            strcpy(cb_content, "none");
+        }
+        // found matching word in second word of pairs
+        else if (reverse)
+        {
+            strcpy(cb_content, pairs[i][0]);
+        }
+        // found matching word in first word of pairs
+        else
+        {
+            strcpy(cb_content, pairs[i][1]);
+        }
+
+        // copy the matching word to clipboard
+        int res = clipboard_set_text_ex(cb, cb_content, strlen(cb_content), LCB_CLIPBOARD);
+        assert(res == true);
+
+        // update the last clipboard content with the current content
+        strcpy(last_cb_content, cb_content);
+    }
+
+    clipboard_free(cb);
+    for(size_t i = 0; i < pair_count; ++i) {
+        free(pairs[i][0]);
+        free(pairs[i][1]);
+    }
+    free(pairs);
 
     return 0;
 }
