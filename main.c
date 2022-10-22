@@ -159,7 +159,9 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
     size_t pair_count = 0;
 
     char word[MAX_WORD_LENGTH] = {0};
+    char tmp [MAX_WORD_LENGTH] = {0};
     size_t index = 0;
+    size_t tmp_len = 0;
 
     while (!feof(f))
     {
@@ -177,22 +179,29 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
         if (word[index] == sep1)
         {
             word[index++] = '\0';
-            pairs[pair_count][0] = (char *)malloc(index);
-            memcpy(pairs[pair_count][0], word, index);
+            memcpy(tmp, word, index);
             memset(word, 0, index);
+            tmp_len = index;
             index = 0;
             continue;
         }
         else if (word[index] == sep2 || feof(f))
         {
             // check if first word exists
-            if (pairs[pair_count][0] == NULL) continue;
+            if (tmp_len == 0) continue;
 
+            // copy buffered first word into pair
+            pairs[pair_count][0] = (char *)malloc(tmp_len);
+            memcpy(pairs[pair_count][0], tmp, tmp_len);
+            memset(tmp, 0, tmp_len);
+
+            // copy second word into pair
             word[index++] = '\0';
             pairs[pair_count][1] = (char *)malloc(index);
             memcpy(pairs[pair_count][1], word, index);
             memset(word, 0, index);
             index = 0;
+            tmp_len = 0;
 
             pair_count++;
             if (!feof(f))
