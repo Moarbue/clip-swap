@@ -48,7 +48,7 @@ int main(int argc, char **argv)
     if (cb == NULL)
     {
         fprintf(stderr, "ERROR: Failed to create the clipboard object\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     char last_cb_content[CLIPBOARD_MAX_LENGTH];
@@ -90,7 +90,7 @@ int main(int argc, char **argv)
         {
             cb_content = (char *)realloc(cb_content, 5);
             if (cb_content == NULL) {
-                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                fprintf(stderr, "ERROR: Failed to realloc memory!\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
         {
             cb_content = (char *)realloc(cb_content, strlen(pairs[i][0]));
             if (cb_content == NULL) {
-                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                fprintf(stderr, "ERROR: Failed to realloc memory!\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
         {
             cb_content = (char *)realloc(cb_content, strlen(pairs[i][1]));
             if (cb_content == NULL) {
-                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                fprintf(stderr, "ERROR: Failed to realloc memory!\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 
 void extract_pairs(const char *file_path, const char sep1, const char sep2, char *(**_pairs)[2], size_t *_pair_count)
 {
+    // open word list
     FILE *f = fopen(file_path, "rb");
     if (f == NULL)
     {
@@ -148,14 +149,7 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
         exit(EXIT_FAILURE);
     }
 
-    char *(*pairs)[2] = (char *(*)[2])malloc(sizeof(char *[2]));
-    if (pairs == NULL)
-    {
-        fprintf(stderr, "ERROR: failed to alloc memory: %s\n", strerror(errno));
-        exit(EXIT_FAILURE);
-    }
-    memset(pairs, 0, sizeof(*pairs));
-
+    char *(*pairs)[2] = NULL;
     size_t pair_count = 0;
 
     char word[MAX_WORD_LENGTH] = {0};
@@ -167,6 +161,7 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
     {
         assert(index < MAX_WORD_LENGTH);
 
+        // append one byte to word
         fread(&word[index], 1, 1, f);
 
         if (ferror(f))
@@ -176,8 +171,10 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
             exit(EXIT_FAILURE);
         }
 
+        // check if read character is first seperator
         if (word[index] == sep1)
         {
+            // copy word into temporary variable
             word[index++] = '\0';
             memcpy(tmp, word, index);
             memset(word, 0, index);
@@ -185,12 +182,21 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
             index = 0;
             continue;
         }
+        // check if read character is second seperator or end of file is reached
         else if (word[index] == sep2 || feof(f))
         {
             // check if first word exists
             if (tmp_len == 0) continue;
 
-            // copy buffered first word into pair
+            // allocate memory for another pair
+            pairs = (char *(*)[2])realloc(pairs, (pair_count + 1) * sizeof(pairs[0]));
+            if (pairs == NULL)
+            {
+                fprintf(stderr, "ERROR: failed to alloc memory: %s\n", strerror(errno));
+                exit(EXIT_FAILURE);
+            }
+
+            // copy previous stored first word into pair
             pairs[pair_count][0] = (char *)malloc(tmp_len);
             memcpy(pairs[pair_count][0], tmp, tmp_len);
             memset(tmp, 0, tmp_len);
@@ -199,13 +205,12 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
             word[index++] = '\0';
             pairs[pair_count][1] = (char *)malloc(index);
             memcpy(pairs[pair_count][1], word, index);
+            // fprintf(stderr, "%s     %lu\n", word, index);
             memset(word, 0, index);
+
             index = 0;
             tmp_len = 0;
-
             pair_count++;
-            if (!feof(f))
-                pairs = (char *(*)[2])realloc(pairs, (pair_count + 1) * sizeof(pairs[0]));
             continue;
         }
         index++;
