@@ -175,7 +175,7 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
 
             pair_count++;
             if (!feof(f))
-                pairs = (char *(*)[2])reallocarray(pairs, pair_count + 1, sizeof(pairs[0]));
+                pairs = (char *(*)[2])realloc(pairs, (pair_count + 1) * sizeof(pairs[0]));
             continue;
         }
         index++;
