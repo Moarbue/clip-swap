@@ -185,6 +185,9 @@ void extract_pairs(const char *file_path, const char sep1, const char sep2, char
         }
         else if (word[index] == sep2 || feof(f))
         {
+            // check if first word exists
+            if (pairs[pair_count][0] == NULL) continue;
+
             word[index++] = '\0';
             pairs[pair_count][1] = (char *)malloc(index);
             memcpy(pairs[pair_count][1], word, index);
