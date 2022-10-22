@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-linux:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install libxcb1-dev
+    - name: build clip-swap with gcc
+      run: CC=gcc ./build.sh
+    - name: build clip-swap with clang
+      run: CC=clang ./build.sh
+
+  build-windows:
+
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
+    - name: build clip-swap
+      shell: cmd
+      run: bash -c CC=cl.exe ./build.sh
