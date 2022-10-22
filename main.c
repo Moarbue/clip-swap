@@ -67,7 +67,7 @@ int main(int argc, char **argv)
         char *cb_content = clipboard_text_ex(cb, &len, LCB_CLIPBOARD);
 
         // only search for matches if content changed since last iteration
-        if (cb_content == NULL || strcmp(last_cb_content, cb_content) == 0) continue;
+        if (len == 0 || cb_content == NULL || strcmp(last_cb_content, cb_content) == 0) continue;
 
         size_t i;
         bool reverse = false;
@@ -88,16 +88,34 @@ int main(int argc, char **argv)
         // didn't find any matching word in second word of pairs either
         if (i == pair_count)
         {
+            cb_content = (char *)realloc(cb_content, 5);
+            if (cb_content == NULL) {
+                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                exit(EXIT_FAILURE);
+            }
+
             strcpy(cb_content, "none");
         }
         // found matching word in second word of pairs
         else if (reverse)
         {
+            cb_content = (char *)realloc(cb_content, strlen(pairs[i][0]));
+            if (cb_content == NULL) {
+                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                exit(EXIT_FAILURE);
+            }
+
             strcpy(cb_content, pairs[i][0]);
         }
         // found matching word in first word of pairs
         else
         {
+            cb_content = (char *)realloc(cb_content, strlen(pairs[i][1]));
+            if (cb_content == NULL) {
+                fprintf(stderr, "ERROR: Failed to realloc memory!");
+                exit(EXIT_FAILURE);
+            }
+
             strcpy(cb_content, pairs[i][1]);
         }
 
