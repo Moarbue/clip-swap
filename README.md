@@ -51,7 +51,7 @@ __Windows (Powershell/cmd)__
 bash -c ./build.sh
 ```
 
-Additionally you can set the compiler (default __gcc__) and/or name of the executable (default __clip-swap__).
+Additionally you can set the compiler (default __gcc__), name of the executable (default __clip-swap__) or compilation flags (default __-Wall -Wextra -O2__).
 ```sh
 # set compiler to the msv-compiler and set binary name to cbswappy-uwu
 CC=cl.exe EXE=cbswappy-uwu ./build.sh

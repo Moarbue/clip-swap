@@ -3,6 +3,7 @@
 set -xe
 
 CC=${CC:-gcc}
+CFLAGS=${CFLAGS:-"-Wall -Wextra -O2"}
 LIBS=-lclipboard
 EXE=${EXE:-clip-swap}
 TEMP_DIR=tmp
@@ -31,7 +32,7 @@ make -j4
 cd ../..
 
 # build the binary
-$CC -Wall -Wextra -O2 main.c -o $EXE -I ./tmp/libclipboard/include -L ./tmp/libclipboard/lib $LIBS
+$CC $CFLAGS main.c -o $EXE -I ./tmp/libclipboard/include -L ./tmp/libclipboard/lib $LIBS
 
 # remove temporary directory
 rm -rf $TEMP_DIR
