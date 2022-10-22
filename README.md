@@ -12,8 +12,8 @@ It even works in both directions. However to prevent an infinite swapping-loop y
 ## Word Table
 The provided lookup-table for the program has to be in a certain format:
 ```
-word1 word2
-word3 word4
+word1;word2
+word3;word4
 ...
 ```
 To add the lookup-table to the project simply add a file named __word_list.txt__ to the project directory and add your words to it.

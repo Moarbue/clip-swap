@@ -41,7 +41,7 @@ int main(int argc, char **argv)
     size_t pair_count;
 
     // extract the pairs out the file
-    extract_pairs(word_file, ' ', '\n', &pairs, &pair_count);
+    extract_pairs(word_file, ';', '\n', &pairs, &pair_count);
 
     // clipboard object
     clipboard_c *cb = clipboard_new(NULL);
